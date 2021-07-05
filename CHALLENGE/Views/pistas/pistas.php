@@ -73,6 +73,10 @@ $podio=podio($codigo,$mysqli);
             </tr>
 
 
+
+<button style="background-color: gray; size: 70px; width: 20%; margin-left:900px; position: fixed;" onclick="location.href='../../index.php'">Nueva carrera</button>
+
+
         <?php  }} ?>
     </tbody>
 </table>
@@ -104,7 +108,6 @@ tiro($codigo,$mysqli);
 
 
 ?>
-
 
 </body>
 </html> 
