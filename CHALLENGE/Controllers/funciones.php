@@ -3,6 +3,11 @@
 
 function dado(){
 	return rand(1,6)*100;
+
+}
+
+function volver(){
+	header ("location: ../../index.php");
 }
 
 
@@ -32,9 +37,9 @@ function movimiento($cod,$mysqli,$corredor){
 	$avanza=dado()+$distancia['recorrido'];
 
 	if ($distancia['puesto']==0) {
-	$sql="UPDATE carrera SET recorrido='$avanza' WHERE nombre_corredor='$corredor' AND codigo='$cod'";
-	$resultado=$mysqli->query($sql);
-	
+		$sql="UPDATE carrera SET recorrido='$avanza' WHERE nombre_corredor='$corredor' AND codigo='$cod'";
+		$resultado=$mysqli->query($sql);
+
 	}
 	if ($avanza>=$distancia['distancia']&& $distancia['puesto']==0) {
 		ordenllegada($cod,$mysqli,$corredor);
@@ -47,7 +52,6 @@ function canco($codigo,$mysqli){
 	$sql="SELECT COUNT(*) As cantco FROM carrera WHERE codigo ='$codigo'";
 	$resultado=$mysqli->query($sql);
 	return $resultado;
-
 }
 
 
@@ -58,28 +62,72 @@ function ordenllegada($cod,$mysqli,$corredor){
 	$au=$mysqli->query($a);
 	$aux=$au->fetch_array(MYSQLI_ASSOC);
 	$puesto=$aux['maximo']+1;
+	if ($puesto==1) {
+		vecescampeon($cod,$mysqli,$corredor);
+	}else{
+		actualizar($cod,$mysqli,$corredor);
+	}
+
+	
 	$sql="UPDATE carrera SET puesto='$puesto' WHERE nombre_corredor='$corredor' AND codigo='$cod'";
 	$resultado=$mysqli->query($sql);
+	
 }
 
 
 function podio($cod,$mysqli){
-	$sql="SELECT nombre_corredor, puesto FROM carrera WHERE codigo='$cod' ORDER BY puesto ASC";
+	$sql="SELECT nombre_corredor, puesto, veces_ganadas FROM carrera WHERE codigo='$cod' ORDER BY puesto ASC";
 	$resultado=$mysqli->query($sql);
 	return $resultado;
 
 }
 
+
+
 function vecescampeon($cod,$mysqli,$corredor){
-	$sql="SELECT pista_id FROM carrera WHERE codigo='$cod'";
-	$resultado=$mysqli->query($sql);
-	$resultado=$resultado->fetch_array(MYSQLI_ASSOC);
-	$sq="SELECT sum(puesto) FROM carrera WHERE $nombre_corredor='$corredor' AND pista='$resultado['pista_id']'";
-	$s=$mysqli->query($sq);
-	
+	$pista=aux_veces_campeon($cod,$mysqli);
+	$sql=aux_dos_veces_campeon($pista,$mysqli,$corredor);
+	$vg="UPDATE carrera SET veces_ganadas='$sql' WHERE nombre_corredor='$corredor' AND pista_id='$pista'";
+	$resultado=$mysqli->query($vg);
 }
 
 
+function aux_veces_campeon($cod,$mysqli){
+	$pista="SELECT pista_id from carrera WHERE codigo='$cod'";
+	$pista=$mysqli->query($pista);
+	$pista=$pista->fetch_array(MYSQLI_ASSOC);
+	$pista=$pista['pista_id'];
+	return $pista;
+}
+
+
+function aux_dos_veces_campeon($pista,$mysqli,$corredor){
+	$sql="SELECT count(*) as contador from carrera WHERE pista_id='$pista' AND puesto=1 AND nombre_corredor=$corredor;";
+	$sql=$mysqli->query($sql);
+	$sql=$sql->fetch_array(MYSQLI_ASSOC);
+	$sql=$sql['contador']+1;
+	return $sql;
+}
+
+function actualizar($cod,$mysqli,$corredor){
+	$pista=aux_veces_campeon($cod,$mysqli);
+	$sql="SELECT count(*) as contador from carrera WHERE pista_id='$pista' AND puesto=1 AND nombre_corredor=$corredor;";
+	$sql=$mysqli->query($sql);
+	$sql=$sql->fetch_array(MYSQLI_ASSOC);
+	$sql=$sql['contador'];
+	$vg="UPDATE carrera SET veces_ganadas='$sql' WHERE nombre_corredor='$corredor' AND pista_id='$pista'";
+	$resultado=$mysqli->query($vg);
+
+}
+
+function tiro($codigo,$mysqli){
+	$cantco=canco($codigo,$mysqli);
+$cantco=$cantco->fetch_array(MYSQLI_ASSOC);
+for ($i=1; $i <=$cantco['cantco'] ; $i++) { 
+  movimiento($codigo,$mysqli,$i);
+}
+
+}
 
 
 
